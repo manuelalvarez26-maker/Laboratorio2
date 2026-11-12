@@ -65,14 +65,6 @@ hdfs dfs -head hdfs://namenode:9000/empresa/logistica/input/telemetria_limpia.cs
 hdfs fsck hdfs://namenode:9000/empresa/logistica/input/telemetria_limpia.csv -files -blocks -locations
 ```
 
-### Registro de ejecución de comandos HDFS
-
-```text
-<PEGAR -ls AQUÍ COMANDOS DE LA LOS SALIDA TEXTUAL Y dfs fsck hdfs>
-```
-
----
-
 ## 3. Análisis crítico
 
 > **Cuestión:** *“¿Por qué un fichero en HDFS no se corrompe ni se pierde aunque falle o se apague un DataNode en un clúster de producción?”*
@@ -83,24 +75,3 @@ La detección y recuperación ante caídas se realiza de manera autónoma gracia
 
 Por otro lado, frente a la corrupción silenciosa de datos en disco (*bit-rot*) o fallos durante la transferencia por red, HDFS protege la integridad mediante **sumas de comprobación criptográficas (checksums CRC-32)**. Durante la escritura inicial, el cliente calcula y almacena un *checksum* por cada fragmento de datos junto al bloque en el DataNode. Cada vez que una aplicación lee el fichero, vuelve a calcular el *checksum* de los bytes recibidos y lo contrasta con el original: si detecta una discrepancia, el bloque se marca como corrupto, la lectura se redirige de forma transparente hacia otra réplica sana en otro DataNode y el NameNode programa el borrado del bloque dañado y la generación de una nueva réplica íntegra.
 
----
-
-## 4. Evidencias gráficas
-
-Todas las capturas de verificación se encuentran almacenadas en el directorio `/evidencias`:
-
-### 4.1. Cálculo de checksums SHA-256
-![Cálculo de hashes SHA-256](evidencias/01_hashes_sha256.png)
-*Evidencia `01_hashes_sha256.png`: Ejecución de `scripts/normalizado.py` mostrando los hashes SHA-256 antes y después del saneamiento junto con el conteo de registros filtrados.*
-
-### 4.2. Servicios activos en el contenedor Hadoop (`jps`)
-![Servicios Hadoop con jps](evidencias/02_jps_servicios.png)
-*Evidencia `02_jps_servicios.png`: Salida del comando `jps` dentro del contenedor verificando la ejecución de los procesos JVM de Hadoop.*
-
-### 4.3. Ingesta HDFS y auditoría de bloques (`fsck`)
-![Comandos HDFS y FSCK](evidencias/03_hdfs_comandos_fsck.png)
-*Evidencia `03_hdfs_comandos_fsck.png`: Ejecución de `hdfs dfs -put`, listado con `hdfs dfs -ls` y diagnóstico de bloques y ubicación en el DataNode mediante `hdfs fsck`.*
-
-### 4.4. Explorador web del NameNode (WebUI)
-![Explorador WebUI HDFS](evidencias/04_webui_hdfs_browse.png)
-*Evidencia `04_webui_hdfs_browse.png`: Verificación visual desde `http://localhost:9870` (`Utilities -> Browse the file system`) del fichero `telemetria_limpia.csv` alojado en `/empresa/logistica/input/`.*
